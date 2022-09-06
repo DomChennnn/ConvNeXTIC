@@ -1,3 +1,6 @@
+from typing import Any
+from torch import Tensor
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
