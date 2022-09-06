@@ -1,0 +1,7 @@
+torch==1.8
+compressai
+timm
+skimage
+torchvision
+pytorch_msssim
+pillow
