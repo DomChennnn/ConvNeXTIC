@@ -5,3 +5,4 @@ skimage
 torchvision
 pytorch_msssim
 pillow
+ninja

@@ -76,9 +76,6 @@ class Logger:
         self.psnr = AverageMeter()
         self.ms_ssim = AverageMeter()
         self.aux_loss = AverageMeter()
-        self.psnr_y = AverageMeter()
-        self.psnr_u = AverageMeter()
-        self.psnr_v = AverageMeter()
 
     def update(self, i, out_criterion, aux_loss):
         self.loss.update(out_criterion['loss'].item())
@@ -87,13 +84,12 @@ class Logger:
         self.aux_loss.update(aux_loss.item())
         self.itr = i
 
-    def update_test(self, bpp, psnr_y, psnr_u, psnr_v, out_criterion, aux_loss):
+    def update_test(self, bpp, psnr, ms_ssim, out_criterion, aux_loss):
         self.loss.update(out_criterion['loss'].item())
         self.bpp_loss.update(bpp.item())
         self.mse_loss.update(out_criterion['mse_loss'].item())
-        self.psnr_y.update(psnr_y.item())
-        self.psnr_u.update(psnr_u.item())
-        self.psnr_v.update(psnr_v.item())
+        self.psnr.update(psnr.item())
+        self.ms_ssim.update(ms_ssim.item())
         self.aux_loss.update(aux_loss.item())
 
     def print(self):
@@ -110,9 +106,8 @@ class Logger:
             f'[ Test{case:>2} ]'
             f' Total: {self.loss.avg:.4f} |'
             f' BPP: {self.bpp_loss.avg:.4f} |'
-            f' PSNR_Y: {self.psnr_y.avg:.4f} |'
-            f' PSNR_U: {self.psnr_u.avg:.4f} |'
-            f' PSNR_V: {self.psnr_v.avg:.4f} |'
+            f' PSNR: {self.psnr.avg:.4f} |'
+            f' MS-SSIM: {self.ms_ssim.avg:.4f} |'
             f' Aux: {self.aux_loss.avg:.0f}'
         )
 
@@ -127,9 +122,8 @@ class Logger:
         writer.add_scalar('[Test] Total loss', self.loss.avg, self.itr)
         writer.add_scalar('[Test] BPP', self.bpp_loss.avg, self.itr)
         writer.add_scalar('[Test] MSE loss', self.mse_loss.avg, self.itr)
-        writer.add_scalar('[Test] PSNR_Y', self.psnr_y.avg, self.itr)
-        writer.add_scalar('[Test] PSNR_u', self.psnr_u.avg, self.itr)
-        writer.add_scalar('[Test] PSNR_v', self.psnr_v.avg, self.itr)
+        writer.add_scalar('[Test] PSNR', self.psnr.avg, self.itr)
+        writer.add_scalar('[Test] MS-SSIM', self.ms_ssim.avg, self.itr)
         writer.add_scalar('[Test] Aux loss', self.aux_loss.avg, self.itr)
 
 

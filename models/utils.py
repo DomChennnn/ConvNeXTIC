@@ -178,3 +178,9 @@ def Multiplexer(y1, y2, y3, y4):
     """
     x_prime = torch.cat((y1, y3, y4, y2), dim=1)
     return Depth2Space(r=2)(x_prime)
+
+
+def quantize_ste(x):
+    """Differentiable quantization via the Straight-Through-Estimator."""
+    # STE (straight-through estimator) trick: x_hard - x_soft.detach() + x_soft
+    return (torch.round(x) - x).detach() + x

@@ -49,9 +49,9 @@ def test(logger, test_dataloader, model, criterion, metric):
             x = x.to(device)
             out_net = model(x)
             out_criterion = criterion(out_net, x)
-            bpp, psnr_y, psnr_u, psnr_v = metric(out_net, x)
+            bpp, psnr, ms_ssim = metric(out_net, x)
 
-            logger.update_test(bpp, psnr_y, psnr_u, psnr_v, out_criterion, model.aux_loss())
+            logger.update_test(bpp, psnr, ms_ssim, out_criterion, model.aux_loss())
 
         logger.print_test()
         logger.write_test()

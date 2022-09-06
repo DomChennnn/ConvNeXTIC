@@ -28,7 +28,7 @@ set_lr: 0
 
 # model hyperparamters
 embed_dim: 128
-latent_dim: 192
+latent_dim: 320
 
 # data options
 trainset: /workspace/flicker
