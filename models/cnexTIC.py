@@ -32,8 +32,8 @@ class cnexTIC(nn.Module):
         N = embed_dim
         M = latent_dim
 
-        depths = [2, 4, 6, 2, 2, 2, 2, 2, 2, 6, 4, 2]
-
+        # depths = [2, 4, 6, 2, 2, 2, 2, 2, 2, 6, 4, 2]
+        depths = [3, 3, 9, 3, 3, 3, 3, 3, 3, 9, 3, 3]
 
         self.g_a0 = ConvNeXtLayer(dim_in=in_chans,
                                   dim_out=embed_dim,

@@ -19,7 +19,7 @@ from losses.losses import Metrics, RateDistortionLoss
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
-    parser.add_argument('--name', help='result dir name', default='VCIP', type=str)
+    parser.add_argument('--name', help='result dir name', default='VCIP_d3393', type=str)
     parser.add_argument('--resume', help='snapshot path')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
@@ -77,6 +77,7 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     model = cnexTIC(config)
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config['lr'])
+    # optimizer = optim.AdamW(model.parameters(), lr=config['lr'])
     aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])
     lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[250, 350], gamma=0.1)
     start_epoch = 0

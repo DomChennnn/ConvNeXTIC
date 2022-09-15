@@ -80,11 +80,11 @@ class BasicLayer(nn.Module):
             if is_first:
                 self.downsample_layer = nn.Sequential(
                     nn.Conv2d(dim_in, dim_out, kernel_size=4, stride=4),
-                    LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
+                    # LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
                 )
             else:
                 self.downsample_layer = nn.Sequential(
-                    LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
+                    # LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
                     nn.Conv2d(dim_in, dim_out, kernel_size=2, stride=2),
                 )
         else:
@@ -92,11 +92,11 @@ class BasicLayer(nn.Module):
             if is_first:
                 self.upsample_layer = nn.Sequential(
                     nn.ConvTranspose2d(dim_in, dim_out, kernel_size=4, stride=4),
-                    LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
+                    # LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
                 )
             else:
                 self.upsample_layer = nn.Sequential(
-                    LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
+                    # LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
                     nn.ConvTranspose2d(dim_in, dim_out, kernel_size=2, stride=2),
                 )
 
