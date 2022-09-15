@@ -1,0 +1,41 @@
+# logger options
+snapshot_save_epoch: 10
+log_itr: 1000
+
+# optimization options
+startepoch: 0
+epochs: 400
+lr: 0.0001
+lr_aux: 0.001
+# lr_shedule_step: 200
+# lr_shedule_scale: 0.5
+clip_max_norm: 1
+
+# training setting
+metric: mse
+gpu_id: 3
+quality_level: '7'
+#lmbda: 0.0018 # 1
+#lmbda: 0.0035 # 2
+#lmbda: 0.0067 # 3
+#lmbda: 0.0130 # 4
+#lmbda: 0.025 # 5
+#lmbda: 0.0483 # 6
+lmbda: 0.0932 #7
+#lmbda: 0.18 # 8
+
+# fine-tuning options
+set_lr: 0
+
+# model hyperparamters
+in_chans: 3
+embed_dim: 128
+latent_dim: 192
+
+# data options
+trainset: /workspace/flicker
+batchsize: 8
+batchsize_test: 1
+patchsize: 256
+worker_num: 8
+p: 0.2

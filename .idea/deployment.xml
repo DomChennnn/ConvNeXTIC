@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@localhost:6667 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="root@localhost:6667 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/VCIP2" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
