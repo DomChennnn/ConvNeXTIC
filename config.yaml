@@ -13,15 +13,15 @@ clip_max_norm: 1
 
 # training setting
 metric: mse
-gpu_id: 3
-quality_level: '3'
+gpu_id: 1
+quality_level: '7'
 #lmbda: 0.0018 # 1
 #lmbda: 0.0035 # 2
-lmbda: 0.0067 # 3
+#lmbda: 0.0067 # 3
 #lmbda: 0.0130 # 4
 #lmbda: 0.025 # 5
 #lmbda: 0.0483 # 6
-#lmbda: 0.0932 #7
+lmbda: 0.0932 #7
 #lmbda: 0.18 # 8
 
 # fine-tuning options
@@ -29,8 +29,8 @@ set_lr: 0
 
 # model hyperparamters
 in_chans: 3
-embed_dim: 128
-latent_dim: 192
+embed_dim: 192
+latent_dim: 320
 
 # data options
 trainset: /workspace/flicker

@@ -15,14 +15,14 @@ from utils import get_config
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='convnext-based Image Compression Evaluation')
-    parser.add_argument('--snapshot', help='snapshot path', type=str, default='/home/domchen/NIC-CfP-main/ckpts/1/best.pt')
-    parser.add_argument('--quality', help='quality', type=str, default='1')
-    parser.add_argument('--testset', help='testset path', type=str, default='/home/domchen/Kodak')
+    parser.add_argument('--snapshot', help='snapshot path', type=str, default='/workspace/dmc/ConvNextIC/results/VCIP_normdown/7/snapshots/best.pt')
+    parser.add_argument('--quality', help='quality', type=str, default='7')
+    parser.add_argument('--testset', help='testset path', type=str, default='/workspace/Kodak')
     # parser.add_argument('--testset', help='testset path', type=str, default='/workspace/lm/data/Tecnick/TESTIMAGES/RGB/RGB_OR_1200x1200')
     args = parser.parse_args(argv)
 
     #args.config = os.path.join('/workspace/lm/TIC/results/nic_cvt', str(args.quality), 'config.yaml')
-    args.config = os.path.join('/home/domchen/NIC-CfP-main','config.yaml')
+    args.config = os.path.join('/workspace/dmc/ConvNextIC','config.yaml')
     return args
 
 
@@ -188,9 +188,9 @@ def main(argv):
     print('=' * len(msg))
     print()
 
-    # os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device = 'cpu'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cpu'
     snapshot = torch.load(args.snapshot)
     model = cnexTIC(config)
     model.load_state_dict(snapshot['model'])

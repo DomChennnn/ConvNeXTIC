@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from torch import Tensor
 from timm.models.layers import trunc_normal_, DropPath
 from timm.models.registry import register_model
-
+from compressai.layers import GDN
 
 class Block(nn.Module):
     r""" ConvNeXt Block. There are two equivalent implementations:
@@ -26,13 +26,10 @@ class Block(nn.Module):
         layer_scale_init_value (float): Init value for Layer Scale. Default: 1e-6.
     """
 
-    def __init__(self, dim, drop_path=0., layer_scale_init_value=1e-6, encode = True):
+    def __init__(self, dim, drop_path=0., layer_scale_init_value=1e-6, encode = True, is_hyper = False):
         super().__init__()
-        self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)
-        # if encode:
-        #     self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)  # depthwise conv
-        # else:
-        #     self.dwconv = nn.ConvTranspose2d(dim, dim, kernel_size=7, padding=3, groups=dim)
+        #############################baseline#################################################
+        self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)  # depthwise conv
         self.norm = LayerNorm(dim, eps=1e-6)
         self.pwconv1 = nn.Linear(dim, 4 * dim)  # pointwise/1x1 convs, implemented with linear layers
         self.act = nn.GELU()
@@ -42,6 +39,7 @@ class Block(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
     def forward(self, x):
+        #####################baseline###############################
         input = x
         x = self.dwconv(x)
         x = x.permute(0, 2, 3, 1)  # (N, C, H, W) -> (N, H, W, C)
@@ -65,7 +63,7 @@ class BasicLayer(nn.Module):
         drop (float, optional): Dropout rate. Default: 0.0
     """
 
-    def __init__(self, dim_in, dim_out, depth, drop=0., is_first = False, encode = True):
+    def __init__(self, dim_in, dim_out, depth, drop=0., is_first = False, encode = True, is_hyper = False):
 
         super().__init__()
         self.dim_in = dim_in
@@ -74,35 +72,42 @@ class BasicLayer(nn.Module):
         self.is_first = is_first
         self.encode = encode
         self.convnextdims = dim_out
-
+        self.is_hyper = is_hyper
         if encode:
             self.convnextdims = dim_out
             if is_first:
                 self.downsample_layer = nn.Sequential(
-                    nn.Conv2d(dim_in, dim_out, kernel_size=4, stride=4),
+                    # nn.Conv2d(dim_in, dim_out, kernel_size=4, stride=4),
                     # LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
+                    nn.Conv2d(dim_in,dim_out,kernel_size=5,stride=2,padding=2)
                 )
             else:
                 self.downsample_layer = nn.Sequential(
                     # LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
-                    nn.Conv2d(dim_in, dim_out, kernel_size=2, stride=2),
+                    # nn.Conv2d(dim_in, dim_out, kernel_size=2, stride=2),
+                    nn.Conv2d(dim_in, dim_out, kernel_size=3, stride=2, padding=1)
                 )
         else:
             self.convnextdims = dim_in
             if is_first:
                 self.upsample_layer = nn.Sequential(
-                    nn.ConvTranspose2d(dim_in, dim_out, kernel_size=4, stride=4),
+                    # nn.ConvTranspose2d(dim_in, dim_out, kernel_size=4, stride=4),
                     # LayerNorm(dim_out, eps=1e-6, data_format="channels_first")
+                    nn.ConvTranspose2d(dim_in,dim_out,kernel_size=5,stride=2,output_padding=1,padding=2)
                 )
             else:
                 self.upsample_layer = nn.Sequential(
                     # LayerNorm(dim_in, eps=1e-6, data_format="channels_first"),
-                    nn.ConvTranspose2d(dim_in, dim_out, kernel_size=2, stride=2),
+                    # nn.ConvTranspose2d(dim_in, dim_out, kernel_size=2, stride=2),
+                    nn.ConvTranspose2d(dim_in, dim_out, kernel_size=3, stride=2, output_padding=1, padding=1)
                 )
 
         # build blocks
         self.blocks = nn.ModuleList(
-            [Block(dim=self.convnextdims, drop_path=drop, encode=encode) for i in range(depth)]
+            [Block(dim=self.convnextdims,
+                   drop_path=drop[i] if isinstance(drop, list) else drop,
+                   encode=encode,
+                   is_hyper=is_hyper) for i in range(depth)]
         )
 
     def forward(self, x):
@@ -129,7 +134,7 @@ class ConvNeXtLayer(nn.Module):
             drop (float, optional): Dropout rate. Default: 0.0
         """
 
-    def __init__(self, dim_in, dim_out, depth, drop = 0., is_first = False, encode = True):
+    def __init__(self, dim_in, dim_out, depth, drop = 0., is_first = False, encode = True, is_hyper = False):
         super(ConvNeXtLayer, self).__init__()
 
         self.convnext_group = BasicLayer(dim_in = dim_in,
@@ -137,7 +142,8 @@ class ConvNeXtLayer(nn.Module):
                                          depth = depth,
                                          drop = drop,
                                          is_first = is_first,
-                                         encode =  encode
+                                         encode =  encode,
+                                         is_hyper = is_hyper
                                          )
 
     def forward(self, x):

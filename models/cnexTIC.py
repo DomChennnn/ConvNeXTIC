@@ -28,85 +28,91 @@ class cnexTIC(nn.Module):
         in_chans = config['in_chans']
         embed_dim = config['embed_dim']
         latent_dim = config['latent_dim']
-
+        drop_path_rate = 0.1
         N = embed_dim
         M = latent_dim
 
-        # depths = [2, 4, 6, 2, 2, 2, 2, 2, 2, 6, 4, 2]
-        depths = [3, 3, 9, 3, 3, 3, 3, 3, 3, 9, 3, 3]
+        depths = [2, 4, 6, 2, 2, 2]
+        # depths = [3, 3, 9, 3, 3, 3]
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
 
         self.g_a0 = ConvNeXtLayer(dim_in=in_chans,
                                   dim_out=embed_dim,
                                   depth=depths[0],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:0]):sum(depths[:1])],
                                   is_first = True,
                                   encode=True)
         self.g_a1 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
                                   depth=depths[1],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:1]):sum(depths[:2])],
                                   is_first = False,
                                   encode=True)
         self.g_a2 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
                                   depth=depths[2],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:2]):sum(depths[:3])],
                                   is_first = False,
                                   encode=True)
         self.g_a3 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=latent_dim,
                                   depth=depths[3],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:3]):sum(depths[:4])],
                                   is_first = False,
                                   encode=True)
         self.h_a0 = ConvNeXtLayer(dim_in=latent_dim,
                                   dim_out=embed_dim,
                                   depth=depths[4],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:4]):sum(depths[:5])],
                                   is_first = False,
-                                  encode=True)
+                                  encode=True,
+                                  is_hyper=True)
         self.h_a1 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
                                   depth=depths[5],
-                                  drop = 0,
+                                  drop = dpr[sum(depths[:5]):sum(depths[:6])],
                                   is_first = False,
-                                  encode=True)
+                                  encode=True,
+                                  is_hyper=True)
 
+        depths = depths[::-1]
         self.h_s0 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
-                                  depth=depths[6],
-                                  drop = 0,
+                                  depth=depths[0],
+                                  drop = dpr[sum(depths[:0]):sum(depths[:1])],
                                   is_first = False,
-                                  encode=False)
+                                  encode=False,
+                                  is_hyper=True)
         self.h_s1 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=2*latent_dim,
-                                  depth=depths[7],
-                                  drop = 0,
+                                  depth=depths[1],
+                                  drop = dpr[sum(depths[:1]):sum(depths[:2])],
                                   is_first = False,
-                                  encode=False)
+                                  encode=False,
+                                  is_hyper=True)
 
         self.g_s0 = ConvNeXtLayer(dim_in=latent_dim,
                                   dim_out=embed_dim,
-                                  depth=depths[8],
-                                  drop = 0,
+                                  depth=depths[2],
+                                  drop = dpr[sum(depths[:2]):sum(depths[:3])],
                                   is_first = False,
                                   encode=False)
         self.g_s1 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
-                                  depth=depths[9],
-                                  drop = 0,
+                                  depth=depths[3],
+                                  drop = dpr[sum(depths[:3]):sum(depths[:4])],
                                   is_first = False,
                                   encode=False)
         self.g_s2 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=embed_dim,
-                                  depth=depths[10],
-                                  drop = 0,
+                                  depth=depths[4],
+                                  drop = dpr[sum(depths[:4]):sum(depths[:5])],
                                   is_first = False,
                                   encode=False)
         self.g_s3 = ConvNeXtLayer(dim_in=embed_dim,
                                   dim_out=in_chans,
-                                  depth=depths[11],
-                                  drop = 0,
+                                  depth=depths[5],
+                                  drop = dpr[sum(depths[:5]):sum(depths[:6])],
                                   is_first = True,
                                   encode=False)
 
