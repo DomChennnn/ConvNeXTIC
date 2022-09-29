@@ -201,7 +201,9 @@ def _encode(image, model, metric, quality, coder, output):
 
     img = load_image(image)
     start = time.time()
-    net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+    # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
     load_time = time.time() - start
 
     x = img2torch(img)
@@ -209,10 +211,9 @@ def _encode(image, model, metric, quality, coder, output):
     p = 256  # maximum 6 strides of 2, and window size 4 for the smallest latent fmap: 4*2^6=256
     x = pad(x, p)
 
-    x = x.cuda()
-    net = net.cuda()
+    x = x.to(device)
+    # net = net.cuda()
     with torch.no_grad():
-
         out = net.compress(x)
 
     shape = out["shape"]
@@ -237,25 +238,28 @@ def _encode(image, model, metric, quality, coder, output):
 def _decode(inputpath, coder, show, output=None):
     compressai.set_entropy_coder(coder)
 
-    dec_start = time.time()
     with Path(inputpath).open("rb") as f:
         model, metric, quality = parse_header(read_uchars(f, 2))
         original_size = read_uints(f, 2)
         strings, shape = read_body(f)
 
     print(f"Model: {model:s}, metric: {metric:s}, quality: {quality:d}")
-    start = time.time()
-    net = models[model](quality=quality, metric=metric, pretrained=True).eval()
-    load_time = time.time() - start
 
-    net = net.cuda()
+    # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
+    torch.cuda.synchronize()
+    start = time.time()
+    # net = net.cuda()
     with torch.no_grad():
         out = net.decompress(strings, shape)
 
     x_hat = crop(out["x_hat"], original_size)
     img = torch2img(x_hat)
-    dec_time = time.time() - dec_start
-    print(f"Decoded in {dec_time:.2f}s (model loading: {load_time:.2f}s)")
+    torch.cuda.synchronize()
+    end = time.time()
+    dec_time = end - start
+    print(f"Decoded in {dec_time:.2f}s")
 
     if show:
         show_image(img)
@@ -276,7 +280,7 @@ def show_image(img: Image.Image):
 
 def encode(argv):
     parser = argparse.ArgumentParser(description="Encode image to bit-stream")
-    parser.add_argument("--image", type=str, default='test.png')
+    parser.add_argument("--image", type=str, default='/workspace/Kodak/kodim01.png')
     parser.add_argument(
         "--model",
         choices=models.keys(),
@@ -295,7 +299,7 @@ def encode(argv):
         "--quality",
         choices=list(range(1, 9)),
         type=int,
-        default=3,
+        default=1,
         help="Quality setting (default: %(default)s)",
     )
     parser.add_argument(
@@ -331,7 +335,7 @@ def decode(argv):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--command", choices=["encode", "decode"],default="encode")
+    parser.add_argument("--command", choices=["encode", "decode"],default="decode")
     args = parser.parse_args(argv)
     return args
 
@@ -340,7 +344,7 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     if args.command == "encode":
         encode(argv)
     elif args.command == "decode":

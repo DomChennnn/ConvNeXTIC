@@ -152,31 +152,61 @@ class Depth2Space(nn.Module):
         return x_prime
 
 
+# def Demultiplexer(x):
+#     """
+#     See Supplementary Material: Figure 2.
+#     This operation can also implemented by slicing.
+#     """
+#     x_prime = Space2Depth(r=2)(x)
+#
+#     _, C, _, _ = x_prime.shape
+#     y1_index = tuple(range(0, C // 4))
+#     y2_index = tuple(range(C * 3 // 4, C))
+#     y3_index = tuple(range(C // 4, C // 2))
+#     y4_index = tuple(range(C // 2, C * 3 // 4))
+#
+#     y1 = x_prime[:, y1_index, :, :]
+#     y2 = x_prime[:, y2_index, :, :]
+#     y3 = x_prime[:, y3_index, :, :]
+#     y4 = x_prime[:, y4_index, :, :]
+#
+#     return y1, y2, y3, y4
+#
+#
+# def Multiplexer(y1, y2, y3, y4):
+#     """
+#     The inverse opperation of Demultiplexer.
+#     This operation can also implemented by slicing.
+#     """
+#     x_prime = torch.cat((y1, y3, y4, y2), dim=1)
+#     return Depth2Space(r=2)(x_prime)
+
 def Demultiplexer(x):
     """
-    See Supplementary Material: Figure 2.
-    This operation can also implemented by slicing.
+    See Supplementary Material: Figure 2
     """
     x_prime = Space2Depth(r=2)(x)
 
     _, C, _, _ = x_prime.shape
-    y1_index = tuple(range(0, C // 4))
-    y2_index = tuple(range(C * 3 // 4, C))
-    y3_index = tuple(range(C // 4, C // 2))
-    y4_index = tuple(range(C // 2, C * 3 // 4))
+    anchor_index = tuple(range(C // 4, C * 3 // 4))
+    non_anchor_index = tuple(range(0, C // 4)) + tuple(range(C * 3 // 4, C))
 
-    y1 = x_prime[:, y1_index, :, :]
-    y2 = x_prime[:, y2_index, :, :]
-    y3 = x_prime[:, y3_index, :, :]
-    y4 = x_prime[:, y4_index, :, :]
+    anchor = x_prime[:, anchor_index, :, :]
+    non_anchor = x_prime[:, non_anchor_index, :, :]
 
-    return y1, y2, y3, y4
+    return anchor, non_anchor
 
 
-def Multiplexer(y1, y2, y3, y4):
+def Multiplexer(anchor, non_anchor):
     """
-    The inverse opperation of Demultiplexer.
-    This operation can also implemented by slicing.
+    The inverse opperation of Demultiplexer
     """
-    x_prime = torch.cat((y1, y3, y4, y2), dim=1)
+    _, C, _, _ = non_anchor.shape
+    x_prime = torch.cat((non_anchor[:, : C // 2, :, :], anchor, non_anchor[:, C // 2:, :, :]), dim=1)
     return Depth2Space(r=2)(x_prime)
+
+
+def quantize_ste(x):
+    """Differentiable quantization via the Straight-Through-Estimator."""
+    # STE (straight-through estimator) trick: x_hard - x_soft.detach() + x_soft
+    return (torch.round(x) - x).detach() + x

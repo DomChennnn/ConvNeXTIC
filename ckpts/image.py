@@ -4,6 +4,7 @@ import torch
 sys.path.append("..")
 from models.cnexTIC import cnexTIC
 from utils import get_config
+from torch.hub import load_state_dict_from_url
 
 from .pretrained import load_pretrained
 
@@ -25,7 +26,8 @@ model_urls = {
         "mse": {
             1: f"{root_url}/1/best.pt",
             2: f"{root_url}/2/best.pt",
-            3: f"{root_url}/3/best.pt",
+            # 3: f"{root_url}/3/best.pt",
+            3: f"/workspace/dmc/ConvNextIC/results/VCIP_scctx/3/snapshots/best.pt",
             4: f"{root_url}/4/best.pt",
             5: f"{root_url}/5/best.pt",
             6: f"{root_url}/6/best.pt",
@@ -92,10 +94,9 @@ def _load_model(
         model.update()
 
         # model = model_architectures[architecture].from_state_dict(state_dict)
-        return model
 
     # model = model_architectures[architecture](*cfgs[architecture][quality], **kwargs)
-    # return model
+    return model
 
 
 def cnexTIC(quality, metric="mse", pretrained=False, progress=True, **kwargs):
@@ -113,4 +114,4 @@ def cnexTIC(quality, metric="mse", pretrained=False, progress=True, **kwargs):
     if quality < 1 or quality > 8:
         raise ValueError(f'Invalid quality "{quality}", should be between (1, 8)')
 
-    return _load_model("nic", metric, quality, pretrained, progress, **kwargs)
+    return _load_model("cnexTIC", metric, quality, pretrained, progress, **kwargs)

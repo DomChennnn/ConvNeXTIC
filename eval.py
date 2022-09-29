@@ -15,8 +15,8 @@ from utils import get_config
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='convnext-based Image Compression Evaluation')
-    parser.add_argument('--snapshot', help='snapshot path', type=str, default='/workspace/dmc/ConvNextIC/results/VCIP_normdown/7/snapshots/best.pt')
-    parser.add_argument('--quality', help='quality', type=str, default='7')
+    parser.add_argument('--snapshot', help='snapshot path', type=str, default='/workspace/dmc/ConvNextIC/results/VCIP_scctx/3/snapshots/best.pt')
+    parser.add_argument('--quality', help='quality', type=str, default='3')
     parser.add_argument('--testset', help='testset path', type=str, default='/workspace/Kodak')
     # parser.add_argument('--testset', help='testset path', type=str, default='/workspace/lm/data/Tecnick/TESTIMAGES/RGB/RGB_OR_1200x1200')
     args = parser.parse_args(argv)

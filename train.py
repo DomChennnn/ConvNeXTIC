@@ -19,7 +19,7 @@ from losses.losses import Metrics, RateDistortionLoss
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
-    parser.add_argument('--name', help='result dir name', default='VCIP_normdown', type=str)
+    parser.add_argument('--name', help='result dir name', default='VCIP_channel192to320', type=str)
     parser.add_argument('--resume', help='snapshot path')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
@@ -83,7 +83,7 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     # AdamW
     # optimizer = optim.AdamW(model.parameters(), lr=config['lr'], weight_decay=0.05)
     # aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])
-    # lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 250, eta_min=1e-6, last_epoch=-1)
+    # lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 300, eta_min=1e-6, last_epoch=-1)
     start_epoch = 0
     if args.resume:
         model = load_checkpoint(args.resume, model, optimizer, aux_optimizer)

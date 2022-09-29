@@ -9,14 +9,17 @@ ConvNext_normdown_bpp = np.array([0.283,1.171])
 ConvNext_normdown_psnr = np.array([31.56,39.16])
 ConvNext_normdown_msssim = np.array([0.9628,0.9927])
 
+ConvNext_scctx_bpp = np.array([0.319,1.218])
+ConvNext_scctx_psnr = np.array([32.34,39.57])
+ConvNext_scctx_msssim = np.array([0.9687,0.9934])
 
-ConvNext_bpp = np.array([0.248, 0.858])
-ConvNext_psnr = np.array([30.26, 34.19])
-ConvNext_msssim = np.array([0.9578, 0.9880])
+ConvNext_AdamW_bpp = np.array([0.318,1.228])
+ConvNext_AdamW_psnr = np.array([32.28,39.44])
+ConvNext_AdamW_msssim = np.array([0.9681,0.9932])
 
 plt.figure(1)
 plt.plot(TIC_bpp,TIC_psnr,marker = 'o')
-plt.plot(ConvNext_bpp, ConvNext_psnr, 's')
-plt.plot(ConvNext_normdown_bpp, ConvNext_normdown_psnr, '*')
-
+plt.plot(ConvNext_scctx_bpp, ConvNext_scctx_psnr, 's')
+plt.plot(ConvNext_normdown_bpp, ConvNext_normdown_psnr, 's')
+plt.plot(ConvNext_AdamW_bpp, ConvNext_AdamW_psnr, 's')
 plt.show()
