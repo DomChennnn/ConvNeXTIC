@@ -13,7 +13,7 @@ clip_max_norm: 1
 
 # training setting
 metric: mse
-gpu_id: 3
+gpu_id: 1
 quality_level: '3'
 #lmbda: 0.0018 # 1
 #lmbda: 0.0035 # 2

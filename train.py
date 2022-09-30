@@ -19,7 +19,7 @@ from losses.losses import Metrics, RateDistortionLoss
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
-    parser.add_argument('--name', help='result dir name', default='VCIP_channel192to320', type=str)
+    parser.add_argument('--name', help='result dir name', default='VCIP_EA', type=str)
     parser.add_argument('--resume', help='snapshot path')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)

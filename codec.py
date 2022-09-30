@@ -299,7 +299,7 @@ def encode(argv):
         "--quality",
         choices=list(range(1, 9)),
         type=int,
-        default=1,
+        default=3,
         help="Quality setting (default: %(default)s)",
     )
     parser.add_argument(
@@ -344,7 +344,7 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '3'
     if args.command == "encode":
         encode(argv)
     elif args.command == "decode":
