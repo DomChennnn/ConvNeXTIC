@@ -251,11 +251,12 @@ def _decode(inputpath, coder, show, output=None):
     torch.cuda.synchronize()
     start = time.time()
     # net = net.cuda()
-    with torch.no_grad():
-        out = net.decompress(strings, shape)
+    for decode_times in range(100):
+        with torch.no_grad():
+            out = net.decompress(strings, shape)
 
-    x_hat = crop(out["x_hat"], original_size)
-    img = torch2img(x_hat)
+        x_hat = crop(out["x_hat"], original_size)
+        img = torch2img(x_hat)
     torch.cuda.synchronize()
     end = time.time()
     dec_time = end - start
@@ -344,7 +345,7 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     if args.command == "encode":
         encode(argv)
     elif args.command == "decode":

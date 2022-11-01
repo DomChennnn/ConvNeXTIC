@@ -4,6 +4,42 @@ import torch
 import torch.nn as nn
 from pytorch_msssim import ms_ssim as MS_SSIM
 
+class lambda_weighted_MSELoss(torch.nn.Module):
+    def __init__(self):
+        super(lambda_weighted_MSELoss, self).__init__()
+
+    def forward(self, im0, im1, lambda_rd):
+        square_diff = (im0 - im1) ** 2.0
+        mse_batch = torch.mean(square_diff, (1, 2, 3))
+        weighted_mse = mse_batch * lambda_rd[:, 0]
+        train_mse = torch.mean(weighted_mse)
+        return train_mse
+
+class lambda_weighted_RateDistortionLoss(nn.Module):
+    def __init__(self, metric='mse'):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.metric = metric
+
+    def forward(self, output, target, lambda_rd):
+        N, _, H, W = target.size()
+        out = {}
+        num_pixels = N * H * W
+
+        out['bpp_loss'] = sum(
+            (-torch.log2(likelihoods).sum() / num_pixels)
+            for likelihoods in output['likelihoods'].values()
+        )
+
+        if self.metric == 'mse':
+            mseloss = self.mse(output['x_hat'], target)
+            weighted_mse = mseloss * lambda_rd[:, 0]
+            out["mse_loss"] = torch.mean(weighted_mse)
+            out["ms_ssim_loss"] = None
+            out["loss"] = 255 ** 2 * out["mse_loss"] + out["bpp_loss"]
+
+        return out
+
 
 class RateDistortionLoss(nn.Module):
     def __init__(self, lmbda=1e-2, metric='mse'):

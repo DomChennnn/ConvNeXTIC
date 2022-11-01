@@ -159,7 +159,7 @@ def load_checkpoint(path, model, optimizer=None, aux_optimizer=None, scaler=None
     snapshot = torch.load(path)
     # epoch = snapshot['epoch']
     # logging.info(f'Loaded from {itr} iterations')
-    model.load_state_dict(snapshot['model'])
+    model.load_state_dict(snapshot['model'], strict=False)
     if not only_net:
         if 'optimizer' in snapshot:
             optimizer.load_state_dict(snapshot['optimizer'])

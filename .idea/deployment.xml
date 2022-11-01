@@ -23,6 +23,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="root@localhost:6667 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>

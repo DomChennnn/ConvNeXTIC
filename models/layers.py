@@ -347,3 +347,21 @@ class External_attention(nn.Module):
         x = x + idn
         x = F.relu(x)
         return x
+
+
+class ScalingNet(nn.Module):
+    def __init__(self, channel):
+        super(ScalingNet, self).__init__()
+        self.channel = int(channel)
+
+        self.fc1 = nn.Linear(1, channel // 2, bias=True)
+        self.fc2 = nn.Linear(channel // 2, channel, bias=True)
+        nn.init.constant_(self.fc2.weight, 0)
+        nn.init.constant_(self.fc2.bias, 0)
+
+    def forward(self, x, lambda_rd):
+        b, c, _, _ = x.size()
+        scaling_vector = torch.exp(self.fc2(F.relu(self.fc1(lambda_rd))))
+        scaling_vector = scaling_vector.view(b, c, 1, 1)
+        x_scaled = x * scaling_vector.expand_as(x)
+        return x_scaled

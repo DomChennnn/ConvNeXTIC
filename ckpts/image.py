@@ -27,7 +27,8 @@ model_urls = {
             1: f"{root_url}/1/best.pt",
             2: f"{root_url}/2/best.pt",
             # 3: f"{root_url}/3/best.pt",
-            3: f"/workspace/dmc/ConvNextIC/results/VCIP_scctx/3/snapshots/best.pt",
+            # 3: f"/workspace/dmc/ConvNextIC/results/VCIP_scctx/3/snapshots/best.pt",
+            3: f"/workspace/dmc//ConvNextIC/results/VCIP_channel192to320/3/snapshots/best.pt",
             4: f"{root_url}/4/best.pt",
             5: f"{root_url}/5/best.pt",
             6: f"{root_url}/6/best.pt",
@@ -51,7 +52,7 @@ cfgs = {
     "cnexTIC": {
         1: (128, 192),
         2: (128, 192),
-        3: (128, 192),
+        3: (192, 320),
         4: (128, 192),
         5: (192, 320),
         6: (192, 320),
