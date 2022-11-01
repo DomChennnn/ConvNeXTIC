@@ -33,7 +33,8 @@ def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
     parser.add_argument('--name', help='result dir name', default='VCIP_VR', type=str)
-    parser.add_argument('--lambda_list', type=str, default='[1,2,3,4,5,6,7,8,10,12,16,20,24,28,32,36,40,48,56,64]')
+    # parser.add_argument('--lambda_list', type=str, default='[1,2,3,4,5,6,7,8,10,12,16,20,24,28,32,36,40,48,56,64]')
+    parser.add_argument('--lambda_list', type=str, default='[0.0009,0.0018,0.0027,0.0036, 0.0045,0.0054,0.0063,0.0072,0.009,0.013,0.015,0.017,0.019,0.022,0.025,0.029,0.033,0.038,0.042,0.0483]')
     parser.add_argument('--resume', help='snapshot path', default='/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/3/snapshots/best.pt')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
@@ -127,7 +128,6 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
         for i, x in enumerate(train_dataloader):
 
             lambda_rd = get_lambda_rd_from_numpy(lambda_rd_list, batchsize)
-            # loss, bpp_loss, mse_loss = test(logger, test_dataloader, model, criterion, metric, lambda_rd_list)
 
             optimizer.zero_grad()
             aux_optimizer.zero_grad()
@@ -158,14 +158,14 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
 
         # test and save model snapshot
         if epoch >= 0:
-            model.update()
-            loss, bpp_loss, mse_loss = test(logger, test_dataloader, model, criterion, metric, lambda_rd_list)
-            if loss < loss_best:
-                logging.info('Best!')
-                save_checkpoint(os.path.join(snapshot_dir, 'best.pt'), epoch, model, optimizer, aux_optimizer)
-                loss_best = loss
-            if epoch % config['snapshot_save_epoch'] == 0:
-                save_checkpoint(os.path.join(snapshot_dir, f'{epoch:03}_{bpp_loss:.4f}_{mse_loss:.8f}.pt'),
+            # model.update()
+            # loss, bpp_loss, mse_loss = test(logger, test_dataloader, model, criterion, metric, lambda_rd_list)
+            # if loss < loss_best:
+            #     logging.info('Best!')
+            #     save_checkpoint(os.path.join(snapshot_dir, 'best.pt'), epoch, model, optimizer, aux_optimizer)
+            #     loss_best = loss
+            if epoch % 1 == 0:
+                save_checkpoint(os.path.join(snapshot_dir, f'{epoch:03}.pt'),
                                 epoch, model, optimizer, aux_optimizer)
         lr_scheduler.step()
         # # lr scheduling
