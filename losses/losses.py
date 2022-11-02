@@ -33,6 +33,7 @@ class lambda_weighted_RateDistortionLoss(nn.Module):
 
         if self.metric == 'mse':
             mseloss = self.mse(output['x_hat'], target)
+            # print(lambda_rd)
             weighted_mse = mseloss * lambda_rd[:, 0]
             out["mse_loss"] = torch.mean(weighted_mse)
             out["ms_ssim_loss"] = None

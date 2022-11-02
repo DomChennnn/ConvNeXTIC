@@ -17,12 +17,16 @@ gpu_id: 2
 quality_level: '3'
 #lmbda: 0.0018 # 1
 #lmbda: 0.0035 # 2
-lmbda: 0.0067 # 3
+#lmbda: 0.0067 # 3
 #lmbda: 0.0130 # 4
 #lmbda: 0.025 # 5
 #lmbda: 0.0483 # 6
 #lmbda: 0.0932 #7
 #lmbda: 0.18 # 8
+
+#lmbda: 0.005 #3 exteral
+#lmbda: 0.01 #4 exteral
+#lmbda: 0.019 #5 exteral
 
 # fine-tuning options
 set_lr: 0

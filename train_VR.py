@@ -33,8 +33,7 @@ def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
     parser.add_argument('--name', help='result dir name', default='VCIP_VR', type=str)
-    # parser.add_argument('--lambda_list', type=str, default='[1,2,3,4,5,6,7,8,10,12,16,20,24,28,32,36,40,48,56,64]')
-    parser.add_argument('--lambda_list', type=str, default='[0.0009,0.0018,0.0027,0.0036, 0.0045,0.0054,0.0063,0.0072,0.009,0.013,0.015,0.017,0.019,0.022,0.025,0.029,0.033,0.038,0.042,0.0483]')
+    parser.add_argument('--lambda_list', type=str, default='[0.0057,0.0058,0.0059,0.0060,0.0061,0.0062,0.0063,0.0064,0.0065,0.0066,0.0067,0.0068,0.0069,0.0070,0.0071,0.0072,0.0073,0.0074,0.0075,0.0076,0.0077]')
     parser.add_argument('--resume', help='snapshot path', default='/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/3/snapshots/best.pt')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
@@ -119,8 +118,8 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     # while logger.itr < config['max_itr']:
 
     lambda_rd_list = get_lambda_list(args.lambda_list)
-    lambda_rd_max = max(lambda_rd_list)
-    lambda_rd_list = [lambda_rd / lambda_rd_max for lambda_rd in lambda_rd_list]
+    # lambda_rd_max = max(lambda_rd_list)
+    # lambda_rd_list = [lambda_rd / lambda_rd_max for lambda_rd in lambda_rd_list]
 
     for epoch in range(start_epoch,config['epochs']):
         # for epoch in range(281, config['epochs']):
@@ -164,7 +163,7 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
             #     logging.info('Best!')
             #     save_checkpoint(os.path.join(snapshot_dir, 'best.pt'), epoch, model, optimizer, aux_optimizer)
             #     loss_best = loss
-            if epoch % 1 == 0:
+            if epoch % config['snapshot_save_epoch'] == 0:
                 save_checkpoint(os.path.join(snapshot_dir, f'{epoch:03}.pt'),
                                 epoch, model, optimizer, aux_optimizer)
         lr_scheduler.step()

@@ -15,6 +15,7 @@ def get_dataloader(config):
         num_workers=config['worker_num'],
         shuffle=True,
         pin_memory=True,
+        drop_last=True
     )
 
 
@@ -28,6 +29,7 @@ def get_dataloader(config):
         num_workers=config['worker_num'],
         shuffle=False,
         pin_memory=True,
+        drop_last=True
     )
 
     return train_dataloader, test_dataloader
