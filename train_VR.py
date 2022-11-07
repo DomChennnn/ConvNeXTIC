@@ -32,9 +32,15 @@ def get_lambda_rd_from_numpy(lambda_rd_list, batchsize=12):
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
-    parser.add_argument('--name', help='result dir name', default='VCIP_VR', type=str)
-    parser.add_argument('--lambda_list', type=str, default='[0.0057,0.0058,0.0059,0.0060,0.0061,0.0062,0.0063,0.0064,0.0065,0.0066,0.0067,0.0068,0.0069,0.0070,0.0071,0.0072,0.0073,0.0074,0.0075,0.0076,0.0077]')
-    parser.add_argument('--resume', help='snapshot path', default='/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/3/snapshots/best.pt')
+    parser.add_argument('--name', help='result dir name', default='VCIP_VR_exteral', type=str)
+    # parser.add_argument('--lambda_list', type=str, default='[0.0057,0.0058,0.0059,0.0060,0.0061,0.0062,0.0063,0.0064,0.0065,0.0066,0.0067,0.0068,0.0069,0.0070,0.0071,0.0072,0.0073,0.0074,0.0075,0.0076,0.0077]') # qp3
+    # parser.add_argument('--lambda_list', type=str, default='[0.0120,0.0122,0.0124,0.0126,0.0128,0.0130,0.0132,0.0134,0.0136,0.0138,0.0140,0.0142,0.0144,0.0146,0.0148,0.0150,0.0152,0.0154,0.0156,0.0158,0.0160]') # qp4
+    # parser.add_argument('--lambda_list', type=str, default='[0.022,0.0225,0.023,0.0235,0.024,0.0245,0.025,0.0255,0.026,0.0265,0.027,0.0275,0.028,0.0285,0.029,0.030,0.031,0.032,0.033,0.034,0.035,0.036,0.037,0.038]') # qp5
+    # parser.add_argument('--lambda_list', type=str, default='[0.0040,0.0041,0.0042,0.0043,0.0044,0.0045,0.0046,0.0047,0.0048,0.0049,0.0050,0.0051,0.0052,0.0053,0.0054,0.0055,0.0056,0.0057,0.0058,0.0059,0.0060]') # 0.0050
+    # parser.add_argument('--lambda_list', type=str, default='[0.0075,0.0076,0.0077,0.0079,0.0080,0.0083,0.0085,0.0087,0.0090,0.0092,0.0095,0.0097,0.0100,0.0102,0.0105,0.0107,0.0110,0.0112,0.0115,0.0117,0.0120]') # 0.01
+    parser.add_argument('--lambda_list', type=str, default='[0.0160,0.01625,0.0165,0.01675,0.0170,0.01725,0.0175,0.01775,0.0180,0.01825,0.0185,0.01875,0.0190,0.01925,0.0195,0.01975,0.0200,0.02025,0.0205,0.02075,0.0210,0.02125,0.0215,0.02175,0.0220]') # 0.019
+
+    parser.add_argument('--resume', help='snapshot path', default="/workspace/dmc/ConvNextIC/results/VCIP_channel192to320_exteral/5/snapshots/best.pt")
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
 
@@ -88,7 +94,9 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
 
     criterion = lambda_weighted_RateDistortionLoss(metric=config['metric'])
     metric = Metrics()
-    train_dataloader, test_dataloader = get_dataloader(config)
+    train_dataloader,test_dataloader = get_dataloader(config)
+    # train_dataloader = get_dataloader(config)   #place2
+    print(len(train_dataloader))
 
     logger = Logger(config, base_dir, snapshot_dir, output_dir, log_dir)
 
@@ -97,7 +105,7 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     # Adam
     optimizer = optim.Adam(model.parameters(), lr=config['lr'])
     aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])
-    lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[250, 350], gamma=0.1)
+    lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 100], gamma=0.1)
     # AdamW
     # optimizer = optim.AdamW(model.parameters(), lr=config['lr'], weight_decay=0.05)
     # aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])

@@ -35,6 +35,7 @@ import os
 
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -44,6 +45,8 @@ from torchvision.transforms import ToPILImage, ToTensor
 import compressai
 
 from ckpts import models
+
+from utils import compute_psnr
 
 torch.backends.cudnn.deterministic = True
 
@@ -163,6 +166,43 @@ def write_body(fd, shape, out_strings):
         bytes_cnt += write_bytes(fd, s[0])
     return bytes_cnt
 
+def write_body_VR(fd, shape, out_strings):
+    bytes_cnt = 0
+    bytes_cnt = write_uints(fd, (shape[0], shape[1], len(out_strings), len(out_strings[0])))
+    for out_string in out_strings:
+        for s in out_string:
+            bytes_cnt += write_uints(fd, (len(s[0]),))
+            bytes_cnt += write_bytes(fd, s[0])
+    return bytes_cnt
+
+def read_body_VR(fd):
+    lstrings = []
+    shape = read_uints(fd, 2)
+    n_list = read_uints(fd, 1)[0]
+    n_strings = read_uints(fd, 1)[0]
+    for num in range(n_list):
+        temp_string = []
+        for _ in range(n_strings):
+            s = read_bytes(fd, read_uints(fd, 1)[0])
+            temp_string.append([s])
+        lstrings.append(temp_string)
+
+    return lstrings, shape
+
+def pad_VR(x, p_w=2 ** 6, p_h=2 ** 6):
+    h, w = x.size(2), x.size(3)
+    H = (h + p_h - 1) // p_h * p_h
+    W = (w + p_w - 1) // p_w * p_w
+    padding_left = (W - w) // 2
+    padding_right = W - w - padding_left
+    padding_top = (H - h) // 2
+    padding_bottom = H - h - padding_top
+    return F.pad(
+        x,
+        (padding_left, padding_right, padding_top, padding_bottom),
+        mode="constant",
+        value=0,
+    )
 
 def pad(x, p=2 ** 6):
     h, w = x.size(2), x.size(3)
@@ -195,7 +235,50 @@ def crop(x, size):
     )
 
 
-def _encode(image, model, metric, quality, coder, output):
+# def _encode(image, model, metric, quality, coder, output, lamb):
+#     compressai.set_entropy_coder(coder)
+#     enc_start = time.time()
+#
+#     img = load_image(image)
+#     start = time.time()
+#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
+#     load_time = time.time() - start
+#
+#     x = img2torch(img)
+#     h, w = x.size(2), x.size(3)
+#     p = 256  # maximum 6 strides of 2, and window size 4 for the smallest latent fmap: 4*2^6=256
+#     x = pad(x, p)
+#
+#     x = x.to(device)
+#     lamb = np.array([lamb],np.float32)
+#     lamb = torch.Tensor(lamb).cuda()
+#     # print(lamb)
+#     # net = net.cuda()
+#     with torch.no_grad():
+#         out = net.compress(x, lamb)
+#
+#     shape = out["shape"]
+#     header = get_header(model, metric, quality)
+#
+#     with Path(output).open("wb") as f:
+#         write_uchars(f, header)
+#         # write original image size
+#         write_uints(f, (h, w))
+#         # write shape and number of encoded latents
+#         write_body(f, shape, out["strings"])
+#
+#     enc_time = time.time() - enc_start
+#     size = filesize(output)
+#     bpp = float(size) * 8 / (img.size[0] * img.size[1])
+#     print(
+#         f"{bpp:.3f} bpp |"
+#         f" Encoded in {enc_time:.2f}s (model loading: {load_time:.2f}s)"
+#     )
+
+
+def _encode(image, model, metric, quality, coder, output, lamb, p):
     compressai.set_entropy_coder(coder)
     enc_start = time.time()
 
@@ -208,23 +291,40 @@ def _encode(image, model, metric, quality, coder, output):
 
     x = img2torch(img)
     h, w = x.size(2), x.size(3)
-    p = 256  # maximum 6 strides of 2, and window size 4 for the smallest latent fmap: 4*2^6=256
+    # p = 1280  # maximum 6 strides of 2, and window size 4 for the smallest latent fmap: 4*2^6=256
     x = pad(x, p)
 
     x = x.to(device)
+    lamb = np.array([lamb],np.float32)
+    lamb = torch.Tensor(lamb).cuda()
+    # print(lamb)
     # net = net.cuda()
-    with torch.no_grad():
-        out = net.compress(x)
 
-    shape = out["shape"]
+    unfold = torch.nn.Unfold(kernel_size=(p,p),stride=p)
+    # print(x.shape)
+    x = unfold(x)
+    x = x.permute(0, 2, 1)
+    x = x.view(-1, 3, p, p)
+    Patch_Nums = x.shape[0]
+    # print(x.shape)
     header = get_header(model, metric, quality)
-
     with Path(output).open("wb") as f:
         write_uchars(f, header)
         # write original image size
-        write_uints(f, (h, w))
+        write_uints(f, (h, w, p))
         # write shape and number of encoded latents
-        write_body(f, shape, out["strings"])
+
+    outstrings = []
+    for i in range(Patch_Nums):
+        with torch.no_grad():
+            out = net.compress(x[[i],:,:,:], lamb)
+
+        outstrings.append(out["strings"])
+        shape = out["shape"]
+
+
+    with Path(output).open("ab") as f:
+        write_body_VR(f, shape, outstrings)
 
     enc_time = time.time() - enc_start
     size = filesize(output)
@@ -235,14 +335,16 @@ def _encode(image, model, metric, quality, coder, output):
     )
 
 
-def _decode(inputpath, coder, show, output=None):
+def _decode(inputpath, coder, show, lamb, output=None):
     compressai.set_entropy_coder(coder)
-
     with Path(inputpath).open("rb") as f:
         model, metric, quality = parse_header(read_uchars(f, 2))
         original_size = read_uints(f, 2)
-        strings, shape = read_body(f)
-
+        p = read_uints(f, 1)[0]
+        strings, shape = read_body_VR(f)
+    h, w = original_size[0], original_size[1]
+    h_pad = int(np.ceil(h/p)*p)
+    w_pad = int(np.ceil(w/p)*p)
     print(f"Model: {model:s}, metric: {metric:s}, quality: {quality:d}")
 
     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
@@ -251,12 +353,21 @@ def _decode(inputpath, coder, show, output=None):
     torch.cuda.synchronize()
     start = time.time()
     # net = net.cuda()
-    for decode_times in range(100):
+    lamb = np.array([lamb],np.float32)
+    lamb = torch.Tensor(lamb).cuda()
+    rec = torch.Tensor(np.zeros((len(strings), 3, p, p))).cuda()
+    for decode_idx in range(len(strings)):
         with torch.no_grad():
-            out = net.decompress(strings, shape)
+            out = net.decompress(strings[decode_idx], shape, lamb)
+            rec[[decode_idx],:,:,:] = out["x_hat"]
+    rec = rec.permute(1,2,3,0)
+    rec = rec.view(1, 3*p*p, -1)
+    fold = torch.nn.Fold(output_size=(h_pad, w_pad) ,kernel_size=(p, p), stride=p)
+    # print(x.shape)
+    rec = fold(rec)
 
-        x_hat = crop(out["x_hat"], original_size)
-        img = torch2img(x_hat)
+    x_hat = crop(rec, original_size)
+    img = torch2img(x_hat)
     torch.cuda.synchronize()
     end = time.time()
     dec_time = end - start
@@ -266,6 +377,108 @@ def _decode(inputpath, coder, show, output=None):
         show_image(img)
     if output is not None:
         img.save(output)
+
+
+
+# def _encode(image, model, metric, quality, coder, output, lamb):
+#     compressai.set_entropy_coder(coder)
+#     enc_start = time.time()
+#
+#     img = load_image(image)
+#     start = time.time()
+#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
+#     load_time = time.time() - start
+#
+#     x = img2torch(img)
+#     h, w = x.size(2), x.size(3)
+#     p_w = 2 ** np.ceil(np.log2(np.ceil(w/2)))
+#     p_h = 2 ** np.ceil(np.log2(np.ceil(h/2)))
+#
+#     p_w = p_w if p_w < 1536 else 1536
+#     p_h = p_h if p_h < 1536 else 1536
+#
+#     x = pad_VR(x, p_w, p_h)
+#
+#     x = x.to(device)
+#     lamb = np.array([lamb],np.float32)
+#     lamb = torch.Tensor(lamb).cuda()
+#     # print(lamb)
+#     # net = net.cuda()
+#
+#
+#     # print(x.shape)
+#     header = get_header(model, metric, quality)
+#     with Path(output).open("wb") as f:
+#         write_uchars(f, header)
+#         # write original image size
+#         write_uints(f, (h, w))
+#         # write shape and number of encoded latents
+#
+#     outstrings = []
+#     for i in range(Patch_Nums):
+#         with torch.no_grad():
+#             out = net.compress(x[[i],:,:,:], lamb)
+#
+#         outstrings.append(out["strings"])
+#         shape = out["shape"]
+#
+#
+#     with Path(output).open("ab") as f:
+#         write_body_VR(f, shape, outstrings)
+#
+#     enc_time = time.time() - enc_start
+#     size = filesize(output)
+#     bpp = float(size) * 8 / (img.size[0] * img.size[1])
+#     print(
+#         f"{bpp:.3f} bpp |"
+#         f" Encoded in {enc_time:.2f}s (model loading: {load_time:.2f}s)"
+#     )
+#
+#
+# def _decode(inputpath, coder, show, lamb, output=None):
+#     compressai.set_entropy_coder(coder)
+#     p = 1024
+#     with Path(inputpath).open("rb") as f:
+#         model, metric, quality = parse_header(read_uchars(f, 2))
+#         original_size = read_uints(f, 2)
+#         strings, shape = read_body_VR(f)
+#     h, w = original_size[0], original_size[1]
+#     h_pad = int(np.ceil(h/p)*p)
+#     w_pad = int(np.ceil(w/p)*p)
+#     print(f"Model: {model:s}, metric: {metric:s}, quality: {quality:d}")
+#
+#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
+#     torch.cuda.synchronize()
+#     start = time.time()
+#     # net = net.cuda()
+#     lamb = np.array([lamb],np.float32)
+#     lamb = torch.Tensor(lamb).cuda()
+#     rec = torch.Tensor(np.zeros((len(strings), 3, p, p))).cuda()
+#     for decode_idx in range(len(strings)):
+#         with torch.no_grad():
+#             out = net.decompress(strings[decode_idx], shape, lamb)
+#             rec[[decode_idx],:,:,:] = out["x_hat"]
+#     rec = rec.permute(1,2,3,0)
+#     rec = rec.view(1, 3*p*p, -1)
+#     fold = torch.nn.Fold(output_size=(h_pad, w_pad) ,kernel_size=(p, p), stride=p)
+#     # print(x.shape)
+#     rec = fold(rec)
+#
+#     x_hat = crop(rec, original_size)
+#     img = torch2img(x_hat)
+#     torch.cuda.synchronize()
+#     end = time.time()
+#     dec_time = end - start
+#     print(f"Decoded in {dec_time:.2f}s")
+#
+#     if show:
+#         show_image(img)
+#     if output is not None:
+#         img.save(output)
 
 
 def show_image(img: Image.Image):
@@ -281,7 +494,7 @@ def show_image(img: Image.Image):
 
 def encode(argv):
     parser = argparse.ArgumentParser(description="Encode image to bit-stream")
-    parser.add_argument("--image", type=str, default='/workspace/Kodak/kodim05.png')
+    parser.add_argument("--image", type=str, default='/workspace/sharedata/VCIP2022/test/Animal/aries-wild-free-running-wildlife-park-158025_1.png')#'/workspace/Kodak/kodim05.png''/workspace/sharedata/VCIP2022/test/Animal/aries-wild-free-running-wildlife-park-158025_1.png'
     parser.add_argument(
         "--model",
         choices=models.keys(),
@@ -311,11 +524,13 @@ def encode(argv):
         help="Entropy coder (default: %(default)s)",
     )
     parser.add_argument("-o", "--output", help="Output path",default='out.bin')
+    parser.add_argument("--lamb", help="adjust fact", default=0)
+    parser.add_argument("--patch_size", help="slice img into patches with size of patch_size x patch_size ", default=1280)
     args = parser.parse_args(argv)
     if not args.output:
         args.output = Path(Path(args.image).resolve().name).with_suffix(".bin")
 
-    _encode(args.image, args.model, args.metric, args.quality, args.coder, args.output)
+    _encode(args.image, args.model, args.metric, args.quality, args.coder, args.output, args.lamb, args.patch_size)
 
 
 def decode(argv):
@@ -330,8 +545,9 @@ def decode(argv):
     )
     parser.add_argument("--show", action="store_true")
     parser.add_argument("-o", "--output", help="Output path",default='out.png')
+    parser.add_argument("--lamb", help="adjust fact", default=0)
     args = parser.parse_args(argv)
-    _decode(args.input, args.coder, args.show, args.output)
+    _decode(args.input, args.coder, args.show, args.lamb, args.output)
 
 
 def parse_args(argv):
@@ -345,11 +561,24 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    if args.command == "encode":
-        encode(argv)
-    elif args.command == "decode":
-        decode(argv)
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    # if args.command == "encode":
+    #     encode(argv)
+    # elif args.command == "decode":
+    #     decode(argv)
+
+    encode(argv)
+
+    decode(argv)
+
+    from PIL import Image
+    path_in = '/workspace/sharedata/VCIP2022/test/Animal/aries-wild-free-running-wildlife-park-158025_1.png'
+    path_rec = 'out.png'
+    img1 = Image.open(path_in)
+    img2 = Image.open(path_rec)
+    img1 = np.array(img1)
+    img2 = np.array(img2)
+    print(compute_psnr(img1,img2))
 
 if __name__ == "__main__":
     main(sys.argv)

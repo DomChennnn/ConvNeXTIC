@@ -4,7 +4,7 @@ log_itr: 1000
 
 # optimization options
 startepoch: 0
-epochs: 400
+epochs: 150
 lr: 0.0001
 lr_aux: 0.001
 # lr_shedule_step: 200
@@ -14,7 +14,7 @@ clip_max_norm: 1
 # training setting
 metric: mse
 gpu_id: 2
-quality_level: '3'
+quality_level: '5'
 #lmbda: 0.0018 # 1
 #lmbda: 0.0035 # 2
 #lmbda: 0.0067 # 3
@@ -38,6 +38,7 @@ latent_dim: 320
 
 # data options
 trainset: /workspace/flicker
+#trainset: /workspace/VCIP2022/train
 batchsize: 8
 batchsize_test: 1
 patchsize: 256

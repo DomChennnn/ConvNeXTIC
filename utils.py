@@ -2,11 +2,14 @@ import os
 import sys
 import yaml
 import time
+import math
 import struct
 import shutil
 import logging
+import numpy as np
 from shutil import copy2
 from pathlib import Path
+
 
 import torch
 import torch.nn.functional as F
@@ -358,3 +361,11 @@ def _decode(model, inputpath, coder='ans', verbose=False):
         print(f"Decoded in {dec_time:.4f}s (model loading: {load_time:.4f}s)")
 
     return x_hat, dec_time
+
+
+def compute_psnr(img1, img2):
+    mse = np.mean((img1 / 255.0 - img2 / 255.0) ** 2)
+    if mse < 1.0e-10:
+        return 100
+    PIXEL_MAX = 1
+    return 20 * math.log10(PIXEL_MAX / math.sqrt(mse))

@@ -1785,7 +1785,7 @@ class cnexTIC(nn.Module):
                 }
 
     def decompress(self, strings, shape, lambda_rd):
-        assert isinstance(strings, list) and len(strings) == 2
+        # assert isinstance(strings, list) and len(strings) == 2
         z_hat = self.entropy_bottleneck.decompress(strings[1], shape)
 
         params = self.h_s(z_hat)
