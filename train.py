@@ -19,8 +19,8 @@ from losses.losses import Metrics, RateDistortionLoss
 def parse_args(argv):
     parser = argparse.ArgumentParser(description='ConvNeXt-based Image Compression')
     parser.add_argument('--config', help='config file path', type=str)
-    parser.add_argument('--name', help='result dir name', default='VCIP_channel192to320', type=str)
-    parser.add_argument('--resume', help='snapshot path', default='/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/2/snapshots/best.pt')
+    parser.add_argument('--name', help='result dir name', default='VCIP_channel192to320_exteral', type=str)
+    parser.add_argument('--resume', help='snapshot path', default='/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/7/snapshots/best.pt')
     parser.add_argument('--seed', help='seed number', default=None, type=int)
     args = parser.parse_args(argv)
 
@@ -80,16 +80,18 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     # Adam
     optimizer = optim.Adam(model.parameters(), lr=config['lr'])
     aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])
-    lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[250, 350], gamma=0.1)
+    lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 120], gamma=0.1)
     # AdamW
     # optimizer = optim.AdamW(model.parameters(), lr=config['lr'], weight_decay=0.05)
     # aux_optimizer = optim.Adam(model.aux_parameters(), lr=config['lr_aux'])
     # lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 300, eta_min=1e-6, last_epoch=-1)
     start_epoch = 0
+    loss_best = 1e10
+
     if args.resume:
         model = load_checkpoint(args.resume, model, optimizer, aux_optimizer)
         start_epoch = config['startepoch']
-
+        loss_best, _, _ = test(logger, test_dataloader, model, criterion, metric)
     # if config['set_lr']:
     #     lr_prior = optimizer.param_groups[0]['lr']
     #     for g in optimizer.param_groups:
@@ -97,7 +99,7 @@ def train(args, config, base_dir, snapshot_dir, output_dir, log_dir):
     #     print(f'[set lr] {lr_prior} -> {optimizer.param_groups[0]["lr"]}')
 
     model.train()
-    loss_best = 1e10
+
     # while logger.itr < config['max_itr']:
     for epoch in range(start_epoch,config['epochs']):
         # for epoch in range(281, config['epochs']):

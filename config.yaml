@@ -3,7 +3,7 @@ snapshot_save_epoch: 10
 log_itr: 1000
 
 # optimization options
-startepoch: 0
+startepoch: 90
 epochs: 150
 lr: 0.0001
 lr_aux: 0.001
@@ -13,8 +13,8 @@ clip_max_norm: 1
 
 # training setting
 metric: mse
-gpu_id: 2
-quality_level: '5'
+gpu_id: 0
+quality_level: '7'
 #lmbda: 0.0018 # 1
 #lmbda: 0.0035 # 2
 #lmbda: 0.0067 # 3
@@ -27,6 +27,35 @@ quality_level: '5'
 #lmbda: 0.005 #3 exteral
 #lmbda: 0.01 #4 exteral
 #lmbda: 0.019 #5 exteral
+#lmbda: 0.036 #6 exteral
+#lmbda: 0.070 #7 exteral
+#lmbda: 0.130 #8 exteral
+
+#vr_lambda
+##1
+#lambda_min: 0.0003
+#lambda_max: 0.0018
+##2
+#lambda_min: 0.0007
+#lambda_max: 0.0035
+##3 qp0050
+#lambda_min: 0.0010
+#lambda_max: 0.0067
+##4
+#lambda_min: 0.0015
+#lambda_max: 0.0130
+##5
+#lambda_min: 0.0035
+#lambda_max: 0.0250
+##6
+#lambda_min: 0.0070
+#lambda_max: 0.0483
+#7
+lambda_min: 0.0130
+lambda_max: 0.0932
+##8
+#lambda_min: 0.0300
+#lambda_max: 0.2300
 
 # fine-tuning options
 set_lr: 0

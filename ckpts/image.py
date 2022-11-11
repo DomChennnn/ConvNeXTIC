@@ -24,17 +24,14 @@ root_url = "./ckpts"
 model_urls = {
     "cnexTIC": {
         "mse": {
-            1: f"{root_url}/1/best.pt",
-            2: f"{root_url}/2/best.pt",
-            # 3: f"{root_url}/3/best.pt",
-            # 3: f"/workspace/dmc/ConvNextIC/results/VCIP_channel192to320/3/snapshots/best.pt",
-            3: f"/workspace/dmc/ConvNextIC/results/VCIP_VR/3/snapshots/060.pt",
-            # 3: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_VCIPfinetune/3/snapshots/150.pt",
-            4: f"{root_url}/4/best.pt",
-            5: f"{root_url}/5/best.pt",
-            6: f"{root_url}/6/best.pt",
-            7: f"{root_url}/7/best.pt",
-            8: f"{root_url}/8/best.pt",
+            1: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/1/snapshots/best.pt",
+            2: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/2/snapshots/best.pt",
+            3: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/3/snapshots/best.pt",
+            4: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/4/snapshots/best.pt",
+            5: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/5/snapshots/best.pt",
+            6: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/6/snapshots/best.pt",
+            7: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/7/snapshots/best.pt",
+            8: f"/workspace/dmc/ConvNextIC/results/VCIP_VR_new/8/snapshots/best.pt",
         },
         "ms-ssim": {
             1: f"{root_url}/",
@@ -51,10 +48,10 @@ model_urls = {
 
 cfgs = {
     "cnexTIC": {
-        1: (128, 192),
-        2: (128, 192),
+        1: (192, 320),
+        2: (192, 320),
         3: (192, 320),
-        4: (128, 192),
+        4: (192, 320),
         5: (192, 320),
         6: (192, 320),
         7: (192, 320),
