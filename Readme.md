@@ -28,10 +28,10 @@ python train.py --config=./config.yaml --name=nic_cvt # --resume '/workspace/lm/
 python eval.py --snapshot='./results/tic_/8/snapshots/best.pt' --quality=8
 
 # compress
-python codec.py encode --model nic -m mse -q 1 -o compressed.bin test.png
+python codec_VR.py encode -q 6 -o I01.bin -lb 1000 -ph 1472 -pw 1280 /workspace/sharedata/VCIP2022/val/1.png
 
 # decompress
-python codec.py decode -o out.png compressed.bin
+python codec_VR.py decode -o I01dec.png I01.bin
 ```
 
 ## Details:

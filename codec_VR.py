@@ -504,7 +504,7 @@ def show_image(img: Image.Image):
 
 def encode(argv):
     parser = argparse.ArgumentParser(description="Encode image to bit-stream")
-    parser.add_argument("--image", type=str,default='/workspace/sharedata/VCIP2022/val/20.png')#'/workspace/Kodak/kodim05.png''/workspace/sharedata/VCIP2022/test/Animal/aries-wild-free-running-wildlife-park-158025_1.png'
+    parser.add_argument("image", type=str)#'/workspace/Kodak/kodim05.png''/workspace/sharedata/VCIP2022/test/Animal/aries-wild-free-running-wildlife-park-158025_1.png'
     parser.add_argument(
         "--model",
         choices=models.keys(),
@@ -534,9 +534,9 @@ def encode(argv):
         help="Entropy coder (default: %(default)s)",
     )
     parser.add_argument("-o", "--output", help="Output path",default='out.bin')
-    parser.add_argument("--lamb", help="adjust fact", default=2140) # lambda*10000//1  0-10000
-    parser.add_argument("--patch_size_h", help="up to down patch", default=1344)#1280 should be 64N
-    parser.add_argument("--patch_size_w", help="left to right patch", default=1472)#1280 should be 64N
+    parser.add_argument("-lb", "--lamb", help="adjust fact", type=int, default=0) # lambda*10000//1  0-10000
+    parser.add_argument("-ph", "--patch_size_h", help="up to down patch", type=int, default=1280)#1280 should be 64N
+    parser.add_argument("-pw", "--patch_size_w", help="left to right patch", type=int, default=1280)#1280 should be 64N
     args = parser.parse_args(argv)
 
     if not args.output:
@@ -547,7 +547,7 @@ def encode(argv):
 
 def decode(argv):
     parser = argparse.ArgumentParser(description="Decode bit-stream to imager")
-    parser.add_argument("--input", type=str,  default='out.bin')
+    parser.add_argument("input", type=str)
     parser.add_argument(
         "-c",
         "--coder",
@@ -564,7 +564,7 @@ def decode(argv):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--command", choices=["encode", "decode"],default="decode")
+    parser.add_argument("command", choices=["encode", "decode"])
     # parser.add_argument("--image", type=str, default='/workspace/sharedata/VCIP2022/val/1.png')
     args = parser.parse_args(argv)
     return args
@@ -574,25 +574,25 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
-    # if args.command == "encode":
-    #     encode(argv)
-    # elif args.command == "decode":
-    #     decode(argv)
-
-    encode(argv)
-
-    decode(argv)
-
-    from PIL import Image
-    path_in = '/workspace/sharedata/VCIP2022/val/20.png'
-    path_rec = 'out.png'
-    img1 = Image.open(path_in)
-    img2 = Image.open(path_rec)
-    img1 = np.array(img1)
-    img2 = np.array(img2)
-    print(compute_psnr(img1,img2))
+    if args.command == "encode":
+        encode(argv)
+    elif args.command == "decode":
+        decode(argv)
+    #
+    # encode(argv)
+    #
+    # decode(argv)
+    #
+    # from PIL import Image
+    # path_in = '/workspace/sharedata/VCIP2022/val/1.png'
+    # path_rec = 'out.png'
+    # img1 = Image.open(path_in)
+    # img2 = Image.open(path_rec)
+    # img1 = np.array(img1)
+    # img2 = np.array(img2)
+    # print(compute_psnr(img1,img2))
 
 if __name__ == "__main__":
     main(sys.argv)
