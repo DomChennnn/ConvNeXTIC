@@ -235,49 +235,6 @@ def crop(x, size):
     )
 
 
-# def _encode(image, model, metric, quality, coder, output, lamb):
-#     compressai.set_entropy_coder(coder)
-#     enc_start = time.time()
-#
-#     img = load_image(image)
-#     start = time.time()
-#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
-#     load_time = time.time() - start
-#
-#     x = img2torch(img)
-#     h, w = x.size(2), x.size(3)
-#     p = 256  # maximum 6 strides of 2, and window size 4 for the smallest latent fmap: 4*2^6=256
-#     x = pad(x, p)
-#
-#     x = x.to(device)
-#     lamb = np.array([lamb],np.float32)
-#     lamb = torch.Tensor(lamb).cuda()
-#     # print(lamb)
-#     # net = net.cuda()
-#     with torch.no_grad():
-#         out = net.compress(x, lamb)
-#
-#     shape = out["shape"]
-#     header = get_header(model, metric, quality)
-#
-#     with Path(output).open("wb") as f:
-#         write_uchars(f, header)
-#         # write original image size
-#         write_uints(f, (h, w))
-#         # write shape and number of encoded latents
-#         write_body(f, shape, out["strings"])
-#
-#     enc_time = time.time() - enc_start
-#     size = filesize(output)
-#     bpp = float(size) * 8 / (img.size[0] * img.size[1])
-#     print(
-#         f"{bpp:.3f} bpp |"
-#         f" Encoded in {enc_time:.2f}s (model loading: {load_time:.2f}s)"
-#     )
-
-
 def _encode(image, model, metric, quality, coder, output, lamb, p_h, p_w):
     compressai.set_entropy_coder(coder)
     enc_start = time.time()
@@ -388,109 +345,6 @@ def _decode(inputpath, coder, show, output=None):
     if output is not None:
         img.save(output)
 
-
-
-# def _encode(image, model, metric, quality, coder, output, lamb):
-#     compressai.set_entropy_coder(coder)
-#     enc_start = time.time()
-#
-#     img = load_image(image)
-#     start = time.time()
-#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
-#     load_time = time.time() - start
-#
-#     x = img2torch(img)
-#     h, w = x.size(2), x.size(3)
-#     p_w = 2 ** np.ceil(np.log2(np.ceil(w/2)))
-#     p_h = 2 ** np.ceil(np.log2(np.ceil(h/2)))
-#
-#     p_w = p_w if p_w < 1536 else 1536
-#     p_h = p_h if p_h < 1536 else 1536
-#
-#     x = pad_VR(x, p_w, p_h)
-#
-#     x = x.to(device)
-#     lamb = np.array([lamb],np.float32)
-#     lamb = torch.Tensor(lamb).cuda()
-#     # print(lamb)
-#     # net = net.cuda()
-#
-#
-#     # print(x.shape)
-#     header = get_header(model, metric, quality)
-#     with Path(output).open("wb") as f:
-#         write_uchars(f, header)
-#         # write original image size
-#         write_uints(f, (h, w))
-#         # write shape and number of encoded latents
-#
-#     outstrings = []
-#     for i in range(Patch_Nums):
-#         with torch.no_grad():
-#             out = net.compress(x[[i],:,:,:], lamb)
-#
-#         outstrings.append(out["strings"])
-#         shape = out["shape"]
-#
-#
-#     with Path(output).open("ab") as f:
-#         write_body_VR(f, shape, outstrings)
-#
-#     enc_time = time.time() - enc_start
-#     size = filesize(output)
-#     bpp = float(size) * 8 / (img.size[0] * img.size[1])
-#     print(
-#         f"{bpp:.3f} bpp |"
-#         f" Encoded in {enc_time:.2f}s (model loading: {load_time:.2f}s)"
-#     )
-#
-#
-# def _decode(inputpath, coder, show, lamb, output=None):
-#     compressai.set_entropy_coder(coder)
-#     p = 1024
-#     with Path(inputpath).open("rb") as f:
-#         model, metric, quality = parse_header(read_uchars(f, 2))
-#         original_size = read_uints(f, 2)
-#         strings, shape = read_body_VR(f)
-#     h, w = original_size[0], original_size[1]
-#     h_pad = int(np.ceil(h/p)*p)
-#     w_pad = int(np.ceil(w/p)*p)
-#     print(f"Model: {model:s}, metric: {metric:s}, quality: {quality:d}")
-#
-#     # net = models[model](quality=quality, metric=metric, pretrained=True).eval()
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     net = models[model](quality=quality, metric=metric, pretrained=True).to(device).eval()
-#     torch.cuda.synchronize()
-#     start = time.time()
-#     # net = net.cuda()
-#     lamb = np.array([lamb],np.float32)
-#     lamb = torch.Tensor(lamb).cuda()
-#     rec = torch.Tensor(np.zeros((len(strings), 3, p, p))).cuda()
-#     for decode_idx in range(len(strings)):
-#         with torch.no_grad():
-#             out = net.decompress(strings[decode_idx], shape, lamb)
-#             rec[[decode_idx],:,:,:] = out["x_hat"]
-#     rec = rec.permute(1,2,3,0)
-#     rec = rec.view(1, 3*p*p, -1)
-#     fold = torch.nn.Fold(output_size=(h_pad, w_pad) ,kernel_size=(p, p), stride=p)
-#     # print(x.shape)
-#     rec = fold(rec)
-#
-#     x_hat = crop(rec, original_size)
-#     img = torch2img(x_hat)
-#     torch.cuda.synchronize()
-#     end = time.time()
-#     dec_time = end - start
-#     print(f"Decoded in {dec_time:.2f}s")
-#
-#     if show:
-#         show_image(img)
-#     if output is not None:
-#         img.save(output)
-
-
 def show_image(img: Image.Image):
     from matplotlib import pyplot as plt
 
@@ -580,19 +434,6 @@ def main(argv):
         encode(argv)
     elif args.command == "decode":
         decode(argv)
-    #
-    # encode(argv)
-    #
-    # decode(argv)
-    #
-    # from PIL import Image
-    # path_in = '/workspace/sharedata/VCIP2022/val/1.png'
-    # path_rec = 'out.png'
-    # img1 = Image.open(path_in)
-    # img2 = Image.open(path_rec)
-    # img1 = np.array(img1)
-    # img2 = np.array(img2)
-    # print(compute_psnr(img1,img2))
 
 if __name__ == "__main__":
     main(sys.argv)
