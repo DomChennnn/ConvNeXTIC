@@ -1,0 +1,44 @@
+32006
+0卡 qp4(done)
+1卡 qp5 break
+2卡 qp6 break
+3卡 qp7 doing
+3卡 qp8 break
+
+0卡 qp = 0.005 break 178epoch
+1卡 qp = 0.01 break 206epoch
+2卡 qp = 0.019 break 204epoch
+
+external support
+32006
+0卡 qp = 0.005   exteral q3
+1卡 qp = 0.010  exteral q4
+2卡 qp = 0.019 exteral q5
+
+
+32001
+1卡 qp4 VR break
+1卡 qp5 VR break
+
+
+32007
+0卡 qp8
+1卡 qp = 0.036 exteral qp6
+2卡 qp = 0.070 exteral qp7
+2卡 qp = 0.130 exteral qp8
+3卡 6_vr
+3卡 7_vr
+
+
+retrain vr
+32006
+2卡 qp1_vr
+0卡 qp3_vr vcip_qp0050_vr
+1卡 qp8_vr vcip_qp0100_vr
+32007
+0卡 qp2_vr
+3卡 qp6_vr
+3卡 qp7_vr
+32001
+1卡 qp4_vr
+1卡 qp5_vr
