@@ -30,6 +30,48 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="root@localhost:6667 password (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (5)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (6)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (7)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (8)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@localhost:6667 password (9)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/workspace/dmc/ConvNextIC" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>

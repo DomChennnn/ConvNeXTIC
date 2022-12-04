@@ -290,7 +290,7 @@ def _encode(image, model, metric, quality, coder, output, lamb, p_h, p_w):
     size = filesize(output)
     bpp = float(size) * 8 / (img.size[0] * img.size[1])
     print(
-        f"{bpp:.3f} bpp |"
+        f"{bpp:.5f} bpp |"
         f" Encoded in {enc_time:.2f}s (model loading: {load_time:.2f}s)"
     )
 
@@ -389,8 +389,8 @@ def encode(argv):
     )
     parser.add_argument("-o", "--output", help="Output path",default='out.bin')
     parser.add_argument("-lb", "--lamb", help="adjust fact", type=int, default=0) # lambda*10000//1  0-10000
-    parser.add_argument("-ph", "--patch_size_h", help="up to down patch", type=int, default=1280)#1280 should be 64N
-    parser.add_argument("-pw", "--patch_size_w", help="left to right patch", type=int, default=1280)#1280 should be 64N
+    parser.add_argument("-ph", "--patch_size_h", help="up to down patch", type=int, default=1088)#1280 should be 64N
+    parser.add_argument("-pw", "--patch_size_w", help="left to right patch", type=int, default=1408)#1280 should be 64N
     args = parser.parse_args(argv)
 
     if not args.output:
@@ -428,7 +428,7 @@ def main(argv):
     args = parse_args(argv[1:2])
     argv = argv[2:]
     torch.set_num_threads(1)  # just to be sure
-    # os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
     if args.command == "encode":
         encode(argv)

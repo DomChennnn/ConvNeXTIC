@@ -3,6 +3,7 @@ import sys
 import argparse
 import math
 from PIL import Image
+import numpy as np
 
 import torch
 import torch.nn.functional as F
@@ -26,10 +27,16 @@ def parse_args(argv):
     return args
 
 
-def compute_psnr(a, b):
-    mse = torch.mean((a - b)**2).item()
-    return -10 * math.log10(mse)
+# def compute_psnr(a, b):
+#     mse = torch.mean((a - b)**2).item()
+#     return -10 * math.log10(mse)
 
+def compute_psnr(img1, img2):
+    mse = np.mean((img1 / 255.0 - img2 / 255.0) ** 2)
+    if mse < 1.0e-10:
+        return 100
+    PIXEL_MAX = 1
+    return 20 * math.log10(PIXEL_MAX / math.sqrt(mse))
 
 def compute_msssim(a, b):
     return ms_ssim(a, b, data_range=1.).item()
@@ -173,30 +180,45 @@ def test_clic(testset_path, model):
 
 def main(argv):
     args = parse_args(argv)
-    config = get_config(args.config)
-    # config['embed_num'] = 128
-    config['testset'] = args.testset
+    # config = get_config(args.config)
+    # # config['embed_num'] = 128
+    # config['testset'] = args.testset
+    #
+    # print('[config]', args.config)
+    # msg = f'======================= {args.snapshot} ======================='
+    # print(msg)
+    # for k, v in config.items():
+    #     if k in {'lr', 'set_lr', 'p', 'testset'}:
+    #         print(f' *{k}: ', v)
+    #     else:
+    #         print(f'  {k}: ', v)
+    # print('=' * len(msg))
+    # print()
+    #
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # # device = 'cpu'
+    # snapshot = torch.load(args.snapshot)
+    # model = cnexTIC(config)
+    # model.load_state_dict(snapshot['model'])
+    # model.eval()
+    # model = model.to(device)
+    # test_kodak(config['testset'], model)
+    dir_origin = r"/workspace/sharedata/VCIP2022/dataset_bitrate/"
+    dir_rec = "./rec_imgs/"
 
-    print('[config]', args.config)
-    msg = f'======================= {args.snapshot} ======================='
-    print(msg)
-    for k, v in config.items():
-        if k in {'lr', 'set_lr', 'p', 'testset'}:
-            print(f' *{k}: ', v)
-        else:
-            print(f'  {k}: ', v)
-    print('=' * len(msg))
-    print()
+    for i in range(1, 21):
+        path_ori = dir_origin + str(i) + '.png'
+        path_rec = dir_rec + 'I' + str(i).zfill(2) + 'dec.png'
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # device = 'cpu'
-    snapshot = torch.load(args.snapshot)
-    model = cnexTIC(config)
-    model.load_state_dict(snapshot['model'])
-    model.eval()
-    model = model.to(device)
-    test_kodak(config['testset'], model)
+        img_ori = Image.open(path_ori)
+        img_rec = Image.open(path_rec)
+
+        img_ori = np.array(img_ori)
+        img_rec = np.array(img_rec)
+
+        print(compute_psnr(img_ori, img_rec))
+
 
 
 if __name__ == '__main__':

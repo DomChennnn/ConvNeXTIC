@@ -28,24 +28,12 @@ python train.py --config=./config.yaml --name=nic_cvt # --resume '/workspace/lm/
 python eval.py --snapshot='./results/tic_/8/snapshots/best.pt' --quality=8
 
 # compress
-python codec_VR.py encode -q 6 -o I01.bin -lb 1000 -ph 1472 -pw 1280 /workspace/sharedata/VCIP2022/val/1.png
+python codec_VR.py encode -q 6 -o I01.bin -lb 1000 -ph 1472 -pw 1280 /data/Dongmuchen/VCIP_mytestdata/mytest/1.png
 
+/workspace/sharedata/VCIP2022/val/1.png  
 # decompress
 python codec_VR.py decode -o I01dec.png I01.bin
 ```
-
-## Details:
-
-| q    | lambda_fixed       |
-| ---- | ------------------ |
-| 1    | 0.0050             |
-| 2    | 0.0067(qp3 in TIC) |
-| 3    | 0.0100             |
-| 4    | 0.0130(qp4 in TIC) |
-| 5    | 0.0190             |
-| 6    | 0.0250(qp5 in TIC) |
-
-
 
 ## Acknowledgement
 
